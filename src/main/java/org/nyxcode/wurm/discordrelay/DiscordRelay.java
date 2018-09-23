@@ -7,6 +7,7 @@ import com.wurmonline.server.kingdom.Kingdom;
 import com.wurmonline.server.kingdom.Kingdoms;
 import com.wurmonline.server.villages.PvPAlliance;
 import com.wurmonline.server.villages.Village;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
@@ -21,10 +22,12 @@ import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
 import org.gotti.wurmunlimited.modloader.interfaces.*;
 
 import javax.security.auth.login.LoginException;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,6 +50,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
     protected static int connectedPlayerUpdateInterval = 120;
     protected static boolean enableRumors = true;
     protected static String rumorChannel = "rumors";
+    protected static String botPlayerCountFormat ="{player_count} online!";
     protected static boolean enableTrade = true;
 
 
@@ -61,9 +65,15 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
 
         try {
             jda = new JDABuilder(AccountType.BOT).setToken(botToken).addEventListener(this).buildBlocking();
-        } catch (LoginException | RateLimitedException | InterruptedException e) {
+        } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
-        }
+        } catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (RateLimitedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
         // - Send rumour messages to discord - //
         try {
@@ -111,6 +121,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
         pollPlayerInterval = TimeConstants.SECOND_MILLIS*connectedPlayerUpdateInterval;
         enableRumors = Boolean.parseBoolean(properties.getProperty("enableRumors", Boolean.toString(enableRumors)));
         rumorChannel = properties.getProperty("rumorChannel", rumorChannel);
+        botPlayerCountFormat = properties.getProperty("botPlayerCountFormat", botPlayerCountFormat);
         enableTrade = Boolean.parseBoolean(properties.getProperty("enableTrade", Boolean.toString(enableTrade)));
     }
 
@@ -233,6 +244,15 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
             return name.replace(" ", "");
         }
     }
+    
+    private String GetBotPlayerCountString()
+    {
+    	String playerCount = Integer.toString(Players.getInstance().getNumberOfPlayers());
+    	
+    	String botPlayerCountString = botPlayerCountFormat.replace("{player_count}", playerCount);
+    	
+    	return botPlayerCountString;
+    }
 
     @Override
     public MessagePolicy onPlayerMessage(Communicator communicator, String message, String title){
@@ -254,7 +274,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
             if(System.currentTimeMillis() > lastPolledPlayers + pollPlayerInterval) {
                 if (Servers.localServer.LOGINSERVER) {
                     try {
-                        jda.getPresence().setGame(Game.of(Players.getInstance().getNumberOfPlayers() + " online!"));
+                        jda.getPresence().setGame(Game.of(null,(GetBotPlayerCountString())));
                     }catch(Exception e){
                         e.printStackTrace();
                         logger.info("Failed to update player count.");

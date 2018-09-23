@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="lib" path="gradle/wrapper/gradle-wrapper.jar"/>
+	<classpathentry kind="lib" path="JDA-3.3.0_260-withDependencies.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sindusklibrary"/>
+	<classpathentry kind="lib" path="Z:/Java/projects/common.jar"/>
+	<classpathentry kind="lib" path="Z:/Java/projects/javassist.jar"/>
+	<classpathentry kind="lib" path="Z:/Java/projects/modlauncher.jar"/>
+	<classpathentry kind="lib" path="Z:/Java/projects/server.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
