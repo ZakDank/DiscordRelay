@@ -47,6 +47,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
     protected static int connectedPlayerUpdateInterval = 120;
     protected static boolean enableRumors = true;
     protected static String rumorChannel = "rumors";
+    protected static String botPlayerCountFormat ="{player_count} online!";
     protected static boolean enableTrade = true;
 
 
@@ -61,7 +62,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
 
         try {
             jda = new JDABuilder(AccountType.BOT).setToken(botToken).addEventListener(this).buildBlocking();
-        } catch (LoginException | RateLimitedException | InterruptedException e) {
+        } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -111,6 +112,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
         pollPlayerInterval = TimeConstants.SECOND_MILLIS*connectedPlayerUpdateInterval;
         enableRumors = Boolean.parseBoolean(properties.getProperty("enableRumors", Boolean.toString(enableRumors)));
         rumorChannel = properties.getProperty("rumorChannel", rumorChannel);
+        botPlayerCountFormat = properties.getProperty("botPlayerCountFormat", botPlayerCountFormat);
         enableTrade = Boolean.parseBoolean(properties.getProperty("enableTrade", Boolean.toString(enableTrade)));
     }
 
@@ -217,10 +219,10 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
             String name = event.getTextChannel().getName();
             if(name.contains("trade")){
                 if(enableTrade) {
-                    sendToTradeChat(name, "<@" + event.getMember().getEffectiveName() + "> " + event.getMessage().getContent());
+                    sendToTradeChat(name, "<@" + event.getMember().getEffectiveName() + "> " + event.getMessage().getContentRaw());
                 }
             }else {
-                sendToGlobalKingdomChat(name, "<@" + event.getMember().getEffectiveName() + "> " + event.getMessage().getContent());
+                sendToGlobalKingdomChat(name, "<@" + event.getMember().getEffectiveName() + "> " + event.getMessage().getContentRaw());
             }
         }
     }
@@ -232,6 +234,15 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
         } else {
             return name.replace(" ", "");
         }
+    }
+    
+    private String GetBotPlayerCountString()
+    {
+    	String playerCount = Integer.toString(Players.getInstance().getNumberOfPlayers());
+    	
+    	String botPlayerCountString = botPlayerCountFormat.replace("{player_count}", playerCount);
+    	
+    	return botPlayerCountString;
     }
 
     @Override
@@ -254,7 +265,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
             if(System.currentTimeMillis() > lastPolledPlayers + pollPlayerInterval) {
                 if (Servers.localServer.LOGINSERVER) {
                     try {
-                        jda.getPresence().setGame(Game.of(Players.getInstance().getNumberOfPlayers() + " online!"));
+                        jda.getPresence().setGame(Game.of(null,(GetBotPlayerCountString())));
                     }catch(Exception e){
                         e.printStackTrace();
                         logger.info("Failed to update player count.");
