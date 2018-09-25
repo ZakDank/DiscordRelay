@@ -274,7 +274,7 @@ public class DiscordRelay extends ListenerAdapter implements WurmServerMod, PreI
             if(System.currentTimeMillis() > lastPolledPlayers + pollPlayerInterval) {
                 if (Servers.localServer.LOGINSERVER) {
                     try {
-                        jda.getPresence().setGame(Game.of(null,(GetBotPlayerCountString())));
+                        jda.getPresence().setGame(Game.of(GetBotPlayerCountString()));
                     }catch(Exception e){
                         e.printStackTrace();
                         logger.info("Failed to update player count.");
